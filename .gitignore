@@ -1,0 +1,5 @@
+example_astronauts.py
+db_dir/challenge.db
+__pycache__/
+pipelines/__pycache__/
+utils/__pycache__/
