@@ -1,16 +1,13 @@
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from airflow.decorators import dag, task, task_group
 from airflow.models.baseoperator import chain
-import json
 from airflow.models import Variable
 from pipelines.sqlite import SQLiteDB
 from pipelines.ihc_api import IHCApiClient
 from pipelines.upload import S3Uploader
-import os
 from pathlib import Path
-import pandas as pd
-from typing import Dict
+import json
 import logging
 task_logger = logging.getLogger("airflow.task")
 
@@ -69,7 +66,6 @@ def Dag_ihc():
         task_logger.info(f"api_url is: {api_url}")
 
     # Start task group definition
-
     @task_group(group_id='sqlite_task_group', default_args={"conn_id": "postgres_default"})
     def sqlite_prep_ddl():
         @task
