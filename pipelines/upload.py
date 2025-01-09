@@ -43,8 +43,3 @@ class S3Uploader:
             print(f"The file {local_fullname} was not found")
         except Exception as e:
             print(f"An error occurred: {e}")
-
-
-# Example usage:
-# uploader = S3Uploader('your_access_key', 'your_secret_key', 'your_bucket_name')
-# uploader.upload_csv('path/to/your/file.csv', 'your/s3/key.csv')

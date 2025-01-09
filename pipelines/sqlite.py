@@ -74,14 +74,6 @@ class SQLiteDB:
             logger.error(f"Error getting tables list: {e}")
             raise e
 
-    # def create_table(self, create_table_sql):
-    #     """Create a table from the create_table_sql statement."""
-    #     try:
-    #         self.conn.execute(create_table_sql)
-    #         logger.info("Table created successfully")
-    #     except Exception as e:
-    #         logger.error(f"Error creating table: {e}")
-
     def create_attribution_customer_journey_table(self):
         """Create the attribution_customer_journey table."""
         try:

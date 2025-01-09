@@ -16,37 +16,6 @@ class IHCApiClient:
         }
         self.sqlite = SQLiteDB(db_file)
 
-    '''
-        endpoint_url: https://api.ihc-attribution.com/v1/compute_ihc
-        url parameters: conv_type_id (str: specifying which conversion type the customer journeys belong to, same as specified during training)
-        api_url = "https://api.ihc-attribution.com/v1/compute_ihc?conv_type_id={conv_type_id}".format(conv_type_id = conv_type_id)
-        
-        Request Body: 
-            - customer_journeys: list of sessions making up customer journeys
-                - select c.conv_id 
-                    , ss.session_id 
-                    , ss.event_date 
-                    , ss.event_time 
-                    , ss.event_date || ' ' || ss.event_time AS event_timestamp
-                    , ss.channel_name 
-                    , ss.holder_engagement 
-                    , ss.closer_engagement 
-                    , 'todo' as conversion
-                    -- 1 if conversion happens during this session, 0 if not
-                    , 'todo' as impression_interaction
-                    -- 1 if session is an ad impression, 0 if not
-                from session_sources ss
-                inner join  conversions c 
-                on c.user_id = ss.user_id 
-                where ss.user_id= '50c034b66a5ef5007df522a9dee0a9689e7d54a1392cdb96bb44ccbe9e8efb1b'
-            - (optional) redistribution_parameter: dictionary of redistribution parameters defining how channel results are “redistributed” to other channels (e.g. direct channel attribution)
-
-            
-            
-    api response
-      [{'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': 'ba74c387f8a2f5ee3facddc70ab1fbb546d71aa9f0a8c46d5f41a5ea518a8d93', 'initializer': 1.0, 'holder': 0.5, 'closer': 0.0, 'ihc': 0.5}, {'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': '510ce0f454c0d54d6767aa22d1f2710643bae56473107a36356fe1a4db8bc36b', 'initializer': 0.0, 'holder': 0.5, 'closer': 1.0, 'ihc': 0.5}]
-    '''
-
     # post customer_journeys
     def post_customer_journeys(self, start_datetime: str, end_datetime: str) -> dict:
 
@@ -68,20 +37,19 @@ class IHCApiClient:
             if body_data is None:
                 raise ValueError("No data to post")
 
-            # TODO : uncomment this
-            # response = requests.post(
-            #     api_url,
-            #     data=body_data,
-            #     headers={
-            #         'Content-Type': 'application/json',
-            #         'x-api-key': self.api_key
-            #     }
-            # )
-            # results = response.json()
+            response = requests.post(
+                api_url,
+                data=body_data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'x-api-key': self.api_key
+                }
+            )
+            results = response.json()
 
-            # TODO : remove this
-            results = {'statusCode': 200, 'value': [{'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': 'ba74c387f8a2f5ee3facddc70ab1fbb546d71aa9f0a8c46d5f41a5ea518a8d93', 'initializer': 1.0, 'holder': 0.5, 'closer': 0.0, 'ihc': 0.5}, {
-                'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': '510ce0f454c0d54d6767aa22d1f2710643bae56473107a36356fe1a4db8bc36b', 'initializer': 0.0, 'holder': 0.5, 'closer': 1.0, 'ihc': 0.5}], 'partialFailureErrors': []}
+            # TODO : remove this , test porpuse only
+            # results = {'statusCode': 200, 'value': [{'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': 'ba74c387f8a2f5ee3facddc70ab1fbb546d71aa9f0a8c46d5f41a5ea518a8d93', 'initializer': 1.0, 'holder': 0.5, 'closer': 0.0, 'ihc': 0.5}, {
+            #     'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': '510ce0f454c0d54d6767aa22d1f2710643bae56473107a36356fe1a4db8bc36b', 'initializer': 0.0, 'holder': 0.5, 'closer': 1.0, 'ihc': 0.5}], 'partialFailureErrors': []}
 
             # logger.info(f"Status Code: {results['statusCode']}")
             # logger.info(results['value'])
