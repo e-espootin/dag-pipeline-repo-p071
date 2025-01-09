@@ -6,6 +6,7 @@ import json
 from airflow.models import Variable
 from pipelines.sqlite import SQLiteDB
 from pipelines.ihc_api import IHCApiClient
+from pipelines.upload import S3Uploader
 import os
 from pathlib import Path
 import pandas as pd
@@ -16,13 +17,18 @@ task_logger = logging.getLogger("airflow.task")
 
 # get env variables
 db_path = Variable.get(
-    "IHC_DB_PATH", default_var="sqlite3_data_script/challenge.db")
+    "IHC_DB_PATH", default_var="db_dir/challenge.db")
 api_url = Variable.get(
     "IHC_API_URL")
 api_key = Variable.get("IHC_API_KEY")
 last_processed_datetime = Variable.get(
     "IHC_LAST_PROCESSED_DATETIME", default_var='2023-08-29 08:00:02.100000')
 chunk_size_hour = Variable.get("IHC_CHUNK_SIZE_HOUR", default_var=12)
+aws_access_key_id = Variable.get("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = Variable.get("AWS_SECRET_ACCESS_KEY")
+aws_bucket_name = Variable.get("AWS_BUCKET_NAME")
+aws_bucket_path = Variable.get("AWS_BUCKET_PATH")
+aws_region_name = Variable.get("AWS_REGION_NAME")
 
 # set class variables
 project_root_path = Path(__file__).resolve().parent
@@ -30,15 +36,27 @@ db = SQLiteDB(f"{project_root_path}/{db_path}")
 ihc = IHCApiClient(base_url=api_url,
                    api_key=api_key,
                    db_file=f"{project_root_path}/{db_path}")
+s3 = S3Uploader(aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key, bucket_name=aws_bucket_name, region_name=aws_region_name)
+
+
+# Default settings applied to all tasks
+default_args = {
+    "owner": "ihc",
+    "depends_on_past": False,
+    "email_on_failure": True,
+    "email": "ebrahim.520@gmail.com",
+    "email_on_retry": False,
+    "retries": 0
+}
 
 
 @dag(
     start_date=datetime(2025, 1, 1),
     schedule="@daily",
     catchup=False,
-    # template_searchpath="/usr/local/airflow/include",
-    default_args={"owner": "Astro", "retries": 0},
-    tags=["example"],
+    tags=["ihc"],
+    default_args=default_args
 )
 def Dag_ihc():
     @task
@@ -52,16 +70,16 @@ def Dag_ihc():
 
     # Start task group definition
 
-    @task_group(group_id='sqlite_task_group', default_args={"conn_id": "postgres_default"},)
+    @task_group(group_id='sqlite_task_group', default_args={"conn_id": "postgres_default"})
     def sqlite_prep_ddl():
         @task
         def validate_connection() -> bool:
-            task_logger.info("load_data_customer")
+            task_logger.info("validate connection")
             # double check with query
             db.get_tables_list()
             return True
 
-        @task
+        @task(email="ebrahim.520@gmail.com", email_on_failure=True)
         def create_table_attribution_customer_journey() -> bool:
             task_logger.info("creating table attribution_customer_journey")
             db.create_attribution_customer_journey_table()
@@ -116,7 +134,7 @@ def Dag_ihc():
 
             return time_ranges
 
-        @task
+        @task(email="ebrahim.520@gmail.com", email_on_failure=True)
         def post_customer_journey(time_ranges: list):
             task_logger.info("post_customer_journey...")
 
@@ -163,8 +181,11 @@ def Dag_ihc():
             sink_path='/usr/local/airflow/dags/sink_dir')
 
     @task
-    def copy_report_to_cloud():
+    def copy_report_to_cloud(bucket_path: str):
         task_logger.info("copy_report_to_s3...")
+        s3.upload_csv(sink_path='/usr/local/airflow/dags/sink_dir', local_fullname='channel_reporting.csv',
+                      cloud_file_path=bucket_path, cloud_filename='channel_reporting')
+        task_logger.info("copy_report_to_s3 was successful")
 
     @task
     def finish_dag():
@@ -173,7 +194,7 @@ def Dag_ihc():
     # Set task group's (tg1) dependencies
     chain(start_dag(), sqlite_prep_ddl(), post_customer_journey_task_group(
         lp_datetime_tg=last_processed_datetime, chunk_size_hour_tg=chunk_size_hour),
-        get_channel_reporting_csv(), copy_report_to_cloud(), finish_dag())
+        get_channel_reporting_csv(), copy_report_to_cloud(bucket_path=aws_bucket_path), finish_dag())
 
 
 # Instantiate the DAG

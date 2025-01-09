@@ -69,19 +69,19 @@ class IHCApiClient:
                 raise ValueError("No data to post")
 
             # TODO : uncomment this
-            response = requests.post(
-                api_url,
-                data=body_data,
-                headers={
-                    'Content-Type': 'application/json',
-                    'x-api-key': self.api_key
-                }
-            )
-            results = response.json()
+            # response = requests.post(
+            #     api_url,
+            #     data=body_data,
+            #     headers={
+            #         'Content-Type': 'application/json',
+            #         'x-api-key': self.api_key
+            #     }
+            # )
+            # results = response.json()
 
             # TODO : remove this
-            # results = {'statusCode': 200, 'value': [{'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': 'ba74c387f8a2f5ee3facddc70ab1fbb546d71aa9f0a8c46d5f41a5ea518a8d93', 'initializer': 1.0, 'holder': 0.5, 'closer': 0.0, 'ihc': 0.5}, {
-            #     'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': '510ce0f454c0d54d6767aa22d1f2710643bae56473107a36356fe1a4db8bc36b', 'initializer': 0.0, 'holder': 0.5, 'closer': 1.0, 'ihc': 0.5}], 'partialFailureErrors': []}
+            results = {'statusCode': 200, 'value': [{'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': 'ba74c387f8a2f5ee3facddc70ab1fbb546d71aa9f0a8c46d5f41a5ea518a8d93', 'initializer': 1.0, 'holder': 0.5, 'closer': 0.0, 'ihc': 0.5}, {
+                'conversion_id': 'd95d45442caec2cdfe2a5e94e0eb6210d5082347d3a5ee3bddf17a434f70d471', 'session_id': '510ce0f454c0d54d6767aa22d1f2710643bae56473107a36356fe1a4db8bc36b', 'initializer': 0.0, 'holder': 0.5, 'closer': 1.0, 'ihc': 0.5}], 'partialFailureErrors': []}
 
             # logger.info(f"Status Code: {results['statusCode']}")
             # logger.info(results['value'])
