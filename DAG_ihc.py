@@ -17,7 +17,7 @@ task_logger = logging.getLogger("airflow.task")
 
 # get env variables
 db_path = Variable.get(
-    "IHC_DB_PATH", default_var="sqlite3_data_script/challenge.db")
+    "IHC_DB_PATH", default_var="db_dir/challenge.db")
 api_url = Variable.get(
     "IHC_API_URL")
 api_key = Variable.get("IHC_API_KEY")
@@ -74,7 +74,7 @@ def Dag_ihc():
     def sqlite_prep_ddl():
         @task
         def validate_connection() -> bool:
-            task_logger.info("load_data_customer")
+            task_logger.info("validate connection")
             # double check with query
             db.get_tables_list()
             return True

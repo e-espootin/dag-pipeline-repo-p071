@@ -58,6 +58,7 @@ class SQLiteDB:
         '''Get list of tables in the database'''
         try:
             query_string = "SELECT name FROM sqlite_master WHERE type='table';"
+            logger.info(f"engine_url: {self.engine_url}")
             # query_string_db_info = "PRAGMA database_list;"
             self.engine = create_engine(self.engine_url, echo=True)
             Session = sessionmaker(bind=self.engine)
